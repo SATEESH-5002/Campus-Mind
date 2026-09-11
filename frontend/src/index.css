@@ -1,0 +1,16 @@
+/**
+ * index.css — Master Stylesheet Bundle Entry Point
+ * ───────────────────────────────────────────────
+ * Imports clean domain stylesheets from src/styles/:
+ *   1. styles/variables.css          ➔ Tokens, scale & base resets
+ *   2. components/ui/ui.css          ➔ Design system UI components (Button, Input, Card, Badge, Dialog)
+ *   3. styles/auth.css               ➔ Auth containers, cards & alert banners
+ *   4. styles/chat.css               ➔ Student chat layout, sidebar, message feed, quick actions
+ *   5. styles/admin.css              ➔ Admin portal layout, dropzone, table & complaint cards
+ */
+
+@import './styles/variables.css';
+@import './components/ui/ui.css';
+@import './styles/auth.css';
+@import './styles/chat.css';
+@import './styles/admin.css';

@@ -1,0 +1,84 @@
+/**
+ * src/hooks/useAdminComplaints.js — Admin Complaint Management Hook
+ *
+ * Handles admin-side complaint state: fetching, filtering, and status updates.
+ * Extracted from AdminPage.jsx to keep the page component lean.
+ */
+
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
+import { getAdminComplaintsApi, updateComplaintStatusApi, deleteComplaintApi } from '../api/complaints';
+
+export function useAdminComplaints() {
+  const [complaints, setComplaints] = useState([]);
+  const [isLoadingComplaints, setIsLoadingComplaints] = useState(false);
+  const [complaintStatusFilter, setComplaintStatusFilter] = useState('');
+  const [complaintCategoryFilter, setComplaintCategoryFilter] = useState('');
+  const [complaintStaffRoleFilter, setComplaintStaffRoleFilter] = useState('');
+  const [complaintScopeFilter, setComplaintScopeFilter] = useState('');
+  const [updatingComplaintId, setUpdatingComplaintId] = useState(null);
+  const [deletingComplaintId, setDeletingComplaintId] = useState(null);
+
+  const fetchComplaints = useCallback(async (status = '', category = '', staffRole = '', scope = '') => {
+    setIsLoadingComplaints(true);
+    try {
+      const data = await getAdminComplaintsApi({ status, category, staffRole, scope });
+      setComplaints(data || []);
+    } catch (e) {
+      console.error('Failed to load complaints', e);
+      toast.error('Failed to load student complaints.');
+    } finally {
+      setIsLoadingComplaints(false);
+    }
+  }, []);
+
+  const updateComplaintStatus = useCallback(async (complaintId, newStatus) => {
+    setUpdatingComplaintId(complaintId);
+    try {
+      await updateComplaintStatusApi(complaintId, newStatus);
+      setComplaints(prev =>
+        prev
+          .map(comp => comp.id === complaintId ? { ...comp, status: newStatus } : comp)
+          .filter(item => !complaintStatusFilter || item.status === complaintStatusFilter)
+      );
+      toast.success(`Complaint status changed to "${newStatus.replace('_', ' ')}".`);
+    } catch (e) {
+      console.error('Failed to update complaint status', e);
+      toast.error(e.message || 'Failed to update complaint status.');
+    } finally {
+      setUpdatingComplaintId(null);
+    }
+  }, [complaintStatusFilter]);
+
+  const deleteComplaint = useCallback(async (complaintId) => {
+    setDeletingComplaintId(complaintId);
+    try {
+      await deleteComplaintApi(complaintId);
+      setComplaints(prev => prev.filter(c => c.id !== complaintId));
+      toast.success('Complaint deleted permanently.');
+    } catch (e) {
+      console.error('Failed to delete complaint', e);
+      toast.error(e.message || 'Failed to delete complaint.');
+    } finally {
+      setDeletingComplaintId(null);
+    }
+  }, []);
+
+  return {
+    complaints,
+    isLoadingComplaints,
+    complaintStatusFilter,
+    setComplaintStatusFilter,
+    complaintCategoryFilter,
+    setComplaintCategoryFilter,
+    complaintStaffRoleFilter,
+    setComplaintStaffRoleFilter,
+    complaintScopeFilter,
+    setComplaintScopeFilter,
+    updatingComplaintId,
+    deletingComplaintId,
+    fetchComplaints,
+    updateComplaintStatus,
+    deleteComplaint,
+  };
+}
